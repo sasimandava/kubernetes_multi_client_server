@@ -1,0 +1,24 @@
+sudo: required
+services:
+  -docker
+
+before_install:
+  -docker build -t sasimandava/docker-react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run sasimandava/docker-react-test npm test -- --coverage
+
+after_success:
+  - docker build -t sasimandava/docker-multi-client ./client
+  - docker build -t sasimandava/docker-multi-nginx ./nginx
+  - docker build -t sasimandava/docker-multi-server ./server
+  - docker build -t sasimandava/docker-multi-worker ./workder
+
+# Log in to the docker CLI
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+# Take images and push them to docker hub.
+- docker push sasimandava/docker-multi-client
+- docker push sasimandava/docker-multi-nginx
+- docker push sasimandava/docker-multi-server
+- docker push sasimandava/docker-multi-worker
